@@ -44,7 +44,7 @@ let { ChainTool } = await import("langchain/tools");
 let { initializeAgentExecutorWithOptions } = await import("langchain/agents");
 let { DynamicTool } = await import("langchain/tools");
 let { ChatOpenAI } = await import("langchain/chat_models");
-
+let { WebBrowser } = await import("langchain/tools/webbrowser");
 let GOOGLE_API_KEY = await env("GOOGLE_API_KEY", {
   shortcuts: [
     {
@@ -202,7 +202,7 @@ const tools = [
       prompt: todoPrompt,
     }),
     description:
-      "Generates a todolist from given input. Input: users query. Output: the todo list",
+      "Use to make a todo list. Input: users query. Output: the todo list",
   }),
   new DynamicTool({
     name: "Search",
@@ -212,12 +212,16 @@ const tools = [
   new DynamicTool({
     name: "Human Input",
     description:
-      "(Use only when no info is available elsewhere) Ask a human for specific input that you don't know, like a persons name, or DOB, location, etc. Input is question to ask human, output is answer",
+      "(Use only as last resort) Ask a human for specific input that you don't know, like a persons name, or DOB, location, etc. Input is question to ask human, output is answer",
     func: humanInput,
   }),
+  // I've found that sometimes the agent just needs a dumping ground to rework its thoughts
+  // this seems to help minimize LLM parsing errors
   new DynamicTool({
     name: "Thought Processing",
-    description: `Process a thought, like a question or idea. Input is thought, output is processed thought`,
+    description: `This is useful for when you have a thought that you want to use in a task, 
+    but you want to make sure it's formatted correctly. 
+    Input is your thought and self-critique and output is the processed thought.`,
     func: processThought,
   }),
 ];
@@ -234,7 +238,7 @@ div({ html: taskBeginMsg, ignoreBlur: true });
 
 const agentExecutor = await initializeAgentExecutorWithOptions(
   tools,
-  new ChatOpenAI({ temperature: 0 }),
+  new ChatOpenAI({ modelName: "gpt-4", temperature: 0 }),
   {
     agentType: "zero-shot-react-description",
     agentArgs: {
