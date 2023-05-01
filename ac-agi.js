@@ -234,7 +234,7 @@ div({ html: taskBeginMsg, ignoreBlur: true });
 
 const agentExecutor = await initializeAgentExecutorWithOptions(
   tools,
-  new ChatOpenAI({ modelName: "gpt-4", temperature: 0 }),
+  new ChatOpenAI({ temperature: 0 }),
   {
     agentType: "zero-shot-react-description",
     agentArgs: {
