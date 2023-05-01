@@ -111,7 +111,7 @@ function printTaskList() {
   ${result}
   `;
   let html = md(msg);
-
+  log(html);
   div({
     html,
     ignoreBlur: true,
@@ -124,7 +124,7 @@ function printNextTask(task) {
   ${task.taskID}: ${task.taskName}
   `;
   let html = md(msg);
-
+  log(html);
   div({
     html,
     ignoreBlur: true,
@@ -137,7 +137,7 @@ function printTaskResult(result) {
   ${result.trim()}
   `;
   let html = md(msg);
-
+  log(html);
   div({
     html,
     ignoreBlur: true,
@@ -168,16 +168,6 @@ async function search(query) {
   }
 }
 
-async function humanFeedbackList(mdStr) {
-  let html = md(`${mdStr.trim()}`);
-  const response = div({
-    html,
-    ignoreBlur: true,
-  });
-
-  return response;
-}
-
 async function humanInput(question) {
   const response = await arg({
     placeholder: "Human, I need help!",
@@ -187,6 +177,17 @@ async function humanInput(question) {
     height: PROMPT.HEIGHT.INPUT_ONLY,
   });
   return response;
+}
+
+async function processThought(thought) {
+  let html = md(`## Thought
+  ${thought.trim()}`);
+  log(html);
+  div({
+    html,
+    ignoreBlur: true,
+  });
+  return thought;
 }
 
 const todoPrompt = PromptTemplate.fromTemplate(
@@ -201,11 +202,11 @@ const tools = [
       prompt: todoPrompt,
     }),
     description:
-      "For making todo lists. Input: objective to create todo list for. Output: the todo list",
+      "Generates a todolist from given input. Input: users query. Output: the todo list",
   }),
   new DynamicTool({
     name: "Search",
-    description: "Search web for info",
+    description: "Search web for information",
     func: search,
   }),
   new DynamicTool({
@@ -214,19 +215,11 @@ const tools = [
       "(Use only when no info is available elsewhere) Ask a human for specific input that you don't know, like a persons name, or DOB, location, etc. Input is question to ask human, output is answer",
     func: humanInput,
   }),
-  //   new DynamicTool({
-  //     name: "Human Feedback Choice",
-  //     description: `Ask human for feedback if you unsure of next step.
-  //     Input is markdown string formatted with your questions and suitable responses like this example:
-  // # Human, I need your help!
-  // <Question Here>
-  // * [John](submit:John) // don't change formatting of these links
-  // * [Mindy](submit:Mindy)
-  // * [Joy](submit:Joy)
-  // * [Other](submit:Other)
-  // `,
-  //     func: humanFeedbackList,
-  //   }),
+  new DynamicTool({
+    name: "Thought Processing",
+    description: `Process a thought, like a question or idea. Input is thought, output is processed thought`,
+    func: processThought,
+  }),
 ];
 
 //##################
@@ -241,7 +234,7 @@ div({ html: taskBeginMsg, ignoreBlur: true });
 
 const agentExecutor = await initializeAgentExecutorWithOptions(
   tools,
-  new ChatOpenAI({ temperature: 0 }),
+  new ChatOpenAI({ modelName: "gpt-4", temperature: 0 }),
   {
     agentType: "zero-shot-react-description",
     agentArgs: {
