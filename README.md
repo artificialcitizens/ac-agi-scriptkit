@@ -1,4 +1,3 @@
-⚠️ Outdated, please visit [https://github.com/artificialcitizens/ac-scripts](https://github.com/artificialcitizens/ac-scripts) for up to date scripts and install instructions
 # AC AGI
 
 AC AGI is a proof of concept of leveraging BabyAGI and human feedback to complete a users tasks. This what built in less than 24hrs for the LabLab.ai x Langchain hackathon
